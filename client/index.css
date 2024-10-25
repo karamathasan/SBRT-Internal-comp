@@ -1,0 +1,61 @@
+/*grid tutrial: https://www.w3schools.com/css/css_grid.asp*/
+.grid-container {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    background-color: #2196F3;
+    padding: 10px;
+}
+.grid-item {
+    margin: 20px;
+    place-self: center;
+}
+
+/*Source: I belive I gpt'ed the joystick lol*/
+.joystick {
+    border: 1px solid #000;
+    background: #eee;
+    border-radius: 50%;
+    width: 250px;
+    height: 250px;
+    position: relative;
+}
+.stick {
+    width: 50px;
+    height: 50px;
+    background: #333;
+    border-radius: 50%;
+    position: absolute;
+    top: 100px;
+    left: 100px;
+}
+
+/* Source: https://blog.hubspot.com/website/html-slider */
+.slider {
+    appearance: none; /* removes browser-specific styling */
+    width: 300px; /* width of slider */
+    height: 25px; /* height of slider */
+    background: #FF5C35 ; /* orange background */
+    outline: none; /* remove outline */
+    border-radius: 50px; /* round corners */
+}
+.slider::-webkit-slider-thumb {
+  appearance: none; /* removes browser-specific styling */
+  width: 20px; /* handle width */
+  height: 20px; /* handle height */
+  border-radius: 50%; /* make it circular */
+  background: #FFFFFF; /* white color */
+  cursor: pointer; /* cursor on hover */
+}
+
+/*source: https://unused-css.com/blog/round-buttons/*/
+button {
+    background-color: #48abe0;
+    color: white;
+    border: none;
+    padding: 5px;
+    font-size: 31px;
+    height: 130px;
+    width: 130px;
+    box-shadow: 0 2px 4px darkslategray;
+    border-radius: 50%;
+}
