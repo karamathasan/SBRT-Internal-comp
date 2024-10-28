@@ -9,6 +9,9 @@ import env
 import time
 
 print("board start")
+LED = Pin("LED",Pin.OUT)
+LED.toggle()
+
 LFen = PWM(Pin(3, Pin.OUT), freq=1000)
 LBen = PWM(Pin(11, Pin.OUT), freq=1000)
 
@@ -35,7 +38,7 @@ max_attempts = 10
 attempt = 0
 print("attempting connection . . . ")
 while not wlan.isconnected() and attempt < max_attempts:
-    print(f"Trying to connect to secrets.SSID (Attempt {attempt + 1}/{max_attempts})...")
+    print(f"Trying to connect to env.SSID (Attempt {attempt + 1}/{max_attempts})...")
     time.sleep(10)
     attempt += 1
 
@@ -47,6 +50,42 @@ else:
 
 app = Microdot()
 CORS(app, allowed_origins = '*', allow_credentials = True)
+
+def drive(left, right):
+    """
+    sets the appropriate motor inputs from the controller outputs
+    - Parameters: 
+        - left: float > left stick inputs
+        - right: float > right stick inputs
+    """
+
+    # left side assignment
+    if left > 0:
+        LFin1.value(1)
+        LFin2.value(0)
+        LBin1.value(1)
+        LBin2.value(0)
+    else:
+        LFin1.value(0)
+        LFin2.value(1)
+        LBin1.value(0)
+        LBin2.value(1)
+
+    if right > 0:
+        RFin1.value(1)
+        RFin2.value(0)
+        RBin1.value(1)
+        RBin2.value(0)
+    else:
+        RFin1.value(0)
+        RFin2.value(1)
+        RBin1.value(0)
+        RBin2.value(1)
+
+    LFen.duty_u16(int(abs(left) * 65535))
+    LBen.duty_u16(int(abs(left) * 65535))
+    RFen.duty_u16(int(abs(left) * 65535))
+    RBen.duty_u16(int(abs(left) * 65535))
 
 
 @app.route('/hello_world', methods=['GET'])
@@ -71,49 +110,17 @@ async def index(request, ws):
 async def index(request, ws):
     # drives the robot based on motor inputs
     # when the left or right sides are positive inputs, 
-    def drive(left, right):
-        """
-        sets the appropriate motor inputs from the controller outputs
-        - Parameters: 
-            - left: float > left stick inputs
-            - right: float > right stick inputs
-        """
-
-        # left side assignment
-        if left > 0:
-            LFin1.value(1)
-            LFin2.value(0)
-            LBin1.value(1)
-            LBin2.value(0)
-        else:
-            LFin1.value(0)
-            LFin2.value(1)
-            LBin1.value(0)
-            LBin2.value(1)
-
-        if right > 0:
-            RFin1.value(1)
-            RFin2.value(0)
-            RBin1.value(1)
-            RBin2.value(0)
-        else:
-            RFin1.value(0)
-            RFin2.value(1)
-            RBin1.value(0)
-            RBin2.value(1)
-        
-        LFen.duty_u16(int(abs(left) * 65535))
-        LBen.duty_u16(int(abs(left) * 65535))
-        RFen.duty_u16(int(abs(left) * 65535))
-        RBen.duty_u16(int(abs(left) * 65535))
-
+    
     while True:
         data = await ws.receive()
         if not data:
             break
         # input data will be a json, {left:_, right:_}
         inputs = ujson.loads(data)
-        drive(inputs["left"], inputs["right"])        
+        drive(0,0)
+#         print(inputs["left"] + inputs["right"])
+        drive(inputs["left"], inputs["right"])
+
 
 @app.get("/msgs")
 @with_websocket
@@ -126,6 +133,8 @@ async def index(request, ws):
 @with_websocket
 async def index(request, ws):
     while True:
-        data = await ws.recieve()
+        data = await ws.receive()
+        data = ujson.loads(data)
+        drive(data["left"], data["right"])
 app.run(port=80)
 
