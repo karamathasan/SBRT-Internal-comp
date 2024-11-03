@@ -16,6 +16,7 @@ width = 400
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 running = True
+ip = "192.168.0.203"
 
 # phone ip: 192.168.160.99
 
@@ -28,7 +29,7 @@ async def quit(queue):
     await queue.put("quit")  # Tell WebSocket client to close
 
 async def websocket_client(queue):
-    async with websockets.connect("ws://192.168.1.61:80/drive") as websocket:
+    async with websockets.connect(f"ws://{ip}:80/drive") as websocket:
         print("Connected to WebSocket server")
         while running:
             inputs = await queue.get()
@@ -60,6 +61,11 @@ async def main():
                 if abs(leftDelta) > 0.005 or abs(rightDelta) > 0.005:
                     data = json.dumps({"left":(round(joystick.get_axis(1),4)),"right":(round(joystick.get_axis(3),4))})
                     await queue.put(data)
+
+            elif event.type == pygame.JOYBUTTONDOWN:
+                print("dpad down")
+                data = json.dumps({"left":(0),"right":(0)})
+                await queue.put(data)
                 
         screen.fill((0, 0, 0))
         UI(joystick.get_axis(1),joystick.get_axis(3))
