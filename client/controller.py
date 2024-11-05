@@ -62,10 +62,15 @@ async def main():
                     data = json.dumps({"left":(round(joystick.get_axis(1),4)),"right":(round(joystick.get_axis(3),4))})
                     await queue.put(data)
 
-            elif event.type == pygame.JOYBUTTONDOWN:
-                print("dpad down")
-                data = json.dumps({"left":(0),"right":(0)})
-                await queue.put(data)
+            elif event.type == pygame.JOYBUTTONDOWN: 
+                if event.button == 10:
+                    print("right bumper pressed")
+                    data = json.dumps({"value":(0.8)})
+                    # await queue.put(data)
+                    # data should be sent to appropriate websocket
+                if event.button == 1:
+                    print("right bumper pressed")
+                    data = json.dumps({"value":(0.8)})
                 
         screen.fill((0, 0, 0))
         UI(joystick.get_axis(1),joystick.get_axis(3))
