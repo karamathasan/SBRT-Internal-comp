@@ -31,7 +31,8 @@ RFin2 = Pin(22,Pin.OUT)
 RBin1 = Pin(20,Pin.OUT)
 RBin2 = Pin(21,Pin.OUT)
 
-servo = PWM(Pin(17,Pin.OUT))
+servo = PWM(Pin(17,Pin.OUT), freq=50)
+
 # Connect to Wi-Fi
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
@@ -107,6 +108,11 @@ def drive(left, right):
     RFen.duty_u16(int(abs(right) * 65535))
     RBen.duty_u16(int(abs(right) * 65535))
 
+def angle2duty(angle):
+    K = (7864 - 1802) / (180)
+    return int(angle * K) + 1802
+    
+
 @app.route('/hello_world', methods=['GET'])
 async def get_invoices(request):
     return 'Hello World!'
@@ -145,13 +151,14 @@ async def index(request, ws):
         data = await ws.receive()
         print(data)
 
-@app.get("/action")
+@app.get("/servo")
 @with_websocket
 async def index(request, ws):
     while True:
         data = await ws.receive()
         data = ujson.loads(data)
-        val = data[value]
-        servo.duty_u16(int(val * 65535))
+        val = data["servo"]
+        servo.duty_u16(angle2duty(val))
+
 app.run(port=80)
 
