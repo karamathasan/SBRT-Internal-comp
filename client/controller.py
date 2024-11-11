@@ -16,7 +16,8 @@ width = 400
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
 running = True
-ip = "192.168.0.203"
+ip = "192.168.1.61"
+# ip = "192.168.1.77"
 
 # phone ip: 192.168.160.99
 
@@ -30,7 +31,7 @@ async def quit(queue):
 
 async def drive_client(motion):
     async with websockets.connect(f"ws://{ip}:80/drive") as websocket:
-        print("Connected to WebSocket server")
+        print("Connected to Drive server")
         while running:
             inputs = await motion.get()
             if inputs == "quit":
@@ -40,7 +41,7 @@ async def drive_client(motion):
 
 async def servo_client(servo):
     async with websockets.connect(f"ws://{ip}:80/servo") as websocket:
-        print("Connected to WebSocket server")
+        print("Connected to Servo server")
         while running:
             inputs = await servo.get()
             if inputs == "quit":
@@ -48,7 +49,9 @@ async def servo_client(servo):
             
             await websocket.send(inputs)
 
+
 async def main():
+    servoDown = False
     motionQueue = asyncio.Queue()
     servoQueue = asyncio.Queue()
     drive_task = asyncio.create_task(drive_client(motionQueue))
@@ -81,24 +84,34 @@ async def main():
                     await motionQueue.put(data)
 
             elif event.type == pygame.JOYBUTTONDOWN: 
-                print("button down")
                 if event.button == 10:
-                    print("right bumper pressed")
-                    data = json.dumps(
-                        {"servo":180}
-                    )
+                    data = json.dumps({"servo":0})
+                    if servoDown == False:
+                        data = json.dumps(
+                            {"servo":50}
+                        )
+                        servoDown = True
+                    else:
+                        data = json.dumps(
+                            {"servo":0}
+                        )
+                        servoDown = False
+                    print(f"right bumper pressed: {servoDown}")
                     await servoQueue.put(data)
+                    if servoDown == True:
+                        await asyncio.sleep(0.3)
+                        await servoQueue.put(json.dumps({"servo":30}))
 
-                if event.button == 1:
-                    print("circle pressed")
+                if event.button == 9:
+                    print("left shoulder pressed")
 
 
-            elif event.type == pygame.JOYBUTTONUP:
-                if event.button == 10:
-                    data = json.dumps(
-                        {"servo":0}
-                    )
-                    await servoQueue.put(data)
+            # elif event.type == pygame.JOYBUTTONUP:
+            #     if event.button == 10:
+            #         data = json.dumps(
+            #             {"servo":0}
+            #         )
+            #         await servoQueue.put(data)
                 
         screen.fill((0, 0, 0))
         UI(joystick.get_axis(1),joystick.get_axis(3))
@@ -110,5 +123,5 @@ async def main():
 
 # Run the event loop
 asyncio.run(main())
-
+3
 pygame.quit()
